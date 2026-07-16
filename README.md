@@ -1,46 +1,30 @@
 # vetaskill
 
-**Vet a Skill: a Claude Skill that statically audits other people's Skills before you install them. It reads them as untrusted data, analyses full contents, and returns a detailed security verdict.** 
+**A Claude Skill that statically audits other people's Skills before you install them. It reads an untrusted, third-party Skill as data, analyses its full contents, and returns a security verdict: SAFE TO TRY, REVIEW NEEDED, or DO NOT INSTALL, with line-level evidence. It never runs, installs, or enables the skill under review.**
 
----
+A Claude Skill is executable instruction. When you enable one, Claude follows it automatically with whatever you have connected: files, email, memory, MCP servers. That makes every third-party Skill a supply-chain dependency, and a stranger's Skill can steal data, run code, hijack the agent, poison memory, or point the agent off to a link that changes hands after a clean scan. vetaskill is the gate you run first.
 
-## Why this exists
+The full case, with sourced figures and documented attacks, is in the article: [Love free Skill bundles? Hackers love them too.](https://open.substack.com/pub/aisafelens/p/love-free-skill-bundles-hackers-love)
 
-A Claude Skill is executable instruction. When you enable one, Claude follows it automatically with whatever you have connected: files, email, memory, MCP servers. That makes every third-party Skill a supply-chain dependency.
+## Two variants, one job
 
-Malicious Skills can steal your confidential data, run code, watch your conversations, hijack agents, poison memory, reframe outputs, and more.
+vetaskill comes in two versions because the surface you run it on changes how safe the review is. They do the same static analysis and apply the same verdict rules. They differ in the environment they run in and the tools they use.
 
-The risks: Snyk's February 2026 audit of [3,984 public Skills](https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/) found more than a third carried a security flaw and 76 were confirmed malicious (credential theft, data exfiltration), with 40+ near-identical malicious Skills traced to a single account. Two academic scans agree: one of [nearly 100,000 Skills](https://arxiv.org/abs/2602.06547) confirmed 157 malicious, another across [three marketplaces](https://arxiv.org/abs/2606.23416) confirmed 131, 63% of them disguised as ordinary tools. The entry bar on some registries is a markdown file and a week-old account.
+- **[`chat/`](chat/) - the safer default.** For Claude chat in claude.ai. Chat's sandbox is isolated and ephemeral, with no access to your local machine, so an untrusted skill has nothing there to reach while it is read as data. Prefer this version for the scan itself whenever you can, even for skills you intend to run in Claude Code. Upload the full third-party skill folder as an attachment and run vetaskill against it.
 
-Scanners help, but share two blind spots:
+- **[`claude-code/`](claude-code/) - disk-side install.** For Claude Code, which reads skills from local folders on your computer and runs with real access to your files. Reviewing an untrusted skill here reads it in the same environment it will run in, and that environment has real access. Use this version when that is what you specifically want, and rely on its static-only discipline to keep the read safe.
 
-1. **Bundled test files.** Major scanners skip the "test" fixtures a Skill ships with, which is [where a payload may hide](https://venturebeat.com/security/anthropic-skill-scanners-passed-every-check-malicious-code-test-file).
-2. **Off-file instructions.** When a Skill tells the agent to fetch a URL and follow it ("read the docs and continue", "install from here"), that page is unread Skill content with the same authority, and it never ships in the bundle a scanner reads. It can change after a clean scan, or sit on a lookalike domain. A one-off scan is a static snapshot that cannot protect you from a link that changes hands later ([demonstrated here](https://www.air.security/blog-posts/the-story-of-skills)).
+Each folder holds its own `SKILL.md` and its own `README.md` with the operator detail for that surface. Read the README in the folder you are about to use.
 
-Experts agree: run only Skills you built yourself or got from unambiguously secure sources, read every bundled file, and never trust skills that point to external links for instructions.
+## The safest posture
 
-More details in the article: [Love free Skill bundles? Hackers love them too.](https://aisafelens.substack.com/p/love-free-skill-bundles-hackers-love)
+1. Vet every third-party skill before you use it, and prefer doing it in the chat version (claude.ai, not Cowork or Claude Code).
+2. On a passing verdict, consider rebuilding the third party skill yourself, rather than installing. If the job is simple enough to reproduce, ask Claude to build a clean version from the described behaviour. That removes the supply-chain risk entirely. Re-derive it from what the skill should do, never copy the untrusted file line for line, or you inherit any hidden payload.
+3. The verdict is a recommendation. The decision to install stays a deliberate human step, made per surface.
 
-## What vetaskill does
+## A note on the two storage worlds
 
-Given a `SKILL.md`, a skill folder, or a zip, it reads every file - scripts and test fixtures included - as untrusted data and reports what the Skill could do if trusted. It:
-
-- never runs, sources, fetches, or installs anything under review, and holds no web-fetch or install permission itself;
-- extracts zips read-only into quarantine, never into a skills directory;
-- flags exfiltration and network callbacks, code execution and droppers, file and credential access, persistence and memory writes, concealment and encoded blobs, off-file or load-bearing links and lookalike domains, and any tool permission the stated job does not justify;
-- returns a verdict - SAFE TO TRY, REVIEW NEEDED, or DO NOT INSTALL - decided by fixed rules rather than overall impression, with the file and line quoted for every finding.
-
-Recommendation only - the install decision stays a deliberate human step.
-
-This skill underwent an adversarial red-team review by Anthropic's **Fable**.
-
-## How to use it
-
-This is a working reference implementation. Because this repo exists to make you audit strangers' Skills, hold this one to the same standard:
-
-1. **Read the content first.** It is one file. It asks for four read-only tools (`Bash`, `Read`, `Grep`, `Glob`), no web-fetch, no install permission - by design.
-2. Copy the `vetaskill/` folder into your skills directory (for example `~/.claude/skills/vetaskill/`), or point your agent to the link of this repo and ask it to build the skill.
-3. Invoke vetaskill before you install any third-party Skill and point your agent at the full skill bundle (text, folder, or zip).
+Enabling a skill in your chat (claude.ai account) turns it on for chat **and** Cowork, which runs agentically with internet access, and access to your local files. There is no chat-only setting. Claude Code is separate: it reads skills from local disk and does not see skills saved in your chat account. So the two variants here are separate installs, and if you want vetaskill on both surfaces you install each one where it belongs and update both when this repo changes.
 
 ## Licence
 
