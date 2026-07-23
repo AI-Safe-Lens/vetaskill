@@ -1,6 +1,6 @@
 # vetaskill
 
-**A Claude Skill that statically audits other people's Skills before you install them. It reads an untrusted, third-party Skill as data, analyses its full contents, and returns a security verdict: SAFE TO TRY, REVIEW NEEDED, or DO NOT INSTALL, with line-level evidence. It never runs, installs, or enables the skill under review.**
+**A Claude Skill that statically audits other people's Skills before you install them. It reads an untrusted, third-party Skill as data, analyses its full contents, and returns a security verdict: SAFE TO TRY, REVIEW NEEDED, or DO NOT INSTALL, with line-level evidence. It never runs, installs, or enables the skill under review. It then rebuilds the skill from scratch safely, instead of downloading the external file.**
 
 A Claude Skill is executable instruction. When you enable one, Claude follows it automatically with whatever you have connected: files, email, memory, MCP servers. That makes every third-party Skill a supply-chain dependency, and a stranger's Skill can steal data, run code, hijack the agent, poison memory, or point the agent off to a link that changes hands after a clean scan. vetaskill is the gate you run first.
 
